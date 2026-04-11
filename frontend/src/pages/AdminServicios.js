@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getServicios, crearServicio, actualizarServicio } from '../services/api';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const CATEGORIAS = [
@@ -24,9 +25,8 @@ const AdminServicios = () => {
   const cargar = async () => {
     try {
       // Traer todos incluyendo inactivos
-      const res = await fetch('/api/servicios?todos=true');
-      const data = await res.json();
-      setServicios(data);
+      const res = await api.get('/api/servicios', { params: { todos: true } });
+      setServicios(Array.isArray(res.data) ? res.data : []);
     } catch {
       toast.error('Error al cargar servicios');
     } finally {
