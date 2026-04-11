@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import api from '../services/api';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const AREAS = [
@@ -27,7 +28,7 @@ const AdminTrabajadores = () => {
   const [busqueda, setBusqueda] = useState('');
 
   const cargar = () => {
-    axios.get('/api/trabajadores')
+    api.get('/api/trabajadores')
       .then(r => setTrabajadores(r.data))
       .catch(() => toast.error('Error al cargar trabajadores'))
       .finally(() => setCargando(false));
@@ -62,10 +63,10 @@ const AdminTrabajadores = () => {
       return toast.error('Nombre, apellido paterno, teléfono y puesto son requeridos');
     try {
       if (editando) {
-        await axios.put(`/api/trabajadores/${editando._id}`, form);
+        await api.put(`/api/trabajadores/${editando._id}`, form);
         toast.success('Trabajador actualizado');
       } else {
-        await axios.post('/api/trabajadores', form);
+        await api.post('/api/trabajadores', form);
         toast.success('Trabajador registrado');
       }
       setModal(false);
@@ -79,7 +80,7 @@ const AdminTrabajadores = () => {
     const accion = t.activo ? 'dar de baja' : 'reactivar';
     if (!window.confirm(`¿Deseas ${accion} a ${t.nombre} ${t.apellidoPaterno}?`)) return;
     try {
-      await axios.put(`/api/trabajadores/${t._id}`, { activo: !t.activo });
+      await api.put(`/api/trabajadores/${t._id}`, { activo: !t.activo });
       toast.success(`Trabajador ${t.activo ? 'dado de baja' : 'reactivado'}`);
       cargar();
     } catch {
