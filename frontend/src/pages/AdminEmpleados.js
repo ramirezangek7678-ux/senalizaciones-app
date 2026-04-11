@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const AdminEmpleados = () => {
@@ -9,7 +9,7 @@ const AdminEmpleados = () => {
   const [form, setForm] = useState({ nombre: '', email: '', password: '', telefono: '' });
 
   const cargar = () => {
-    axios.get('/api/admin/empleados')
+    api.get('/api/admin/empleados')
       .then(r => setEmpleados(r.data))
       .catch(() => toast.error('Error al cargar empleados'))
       .finally(() => setCargando(false));
@@ -23,7 +23,7 @@ const AdminEmpleados = () => {
     if (form.password.length < 6)
       return toast.error('La contraseña debe tener al menos 6 caracteres');
     try {
-      await axios.post('/api/admin/empleados', form);
+      await api.post('/api/admin/empleados', form);
       toast.success('Empleado creado exitosamente');
       setModal(false);
       setForm({ nombre: '', email: '', password: '', telefono: '' });
@@ -37,7 +37,7 @@ const AdminEmpleados = () => {
     const accion = emp.activo ? 'desactivar' : 'activar';
     if (!window.confirm(`¿Deseas ${accion} a ${emp.nombre}?`)) return;
     try {
-      await axios.put(`/api/admin/empleados/${emp._id}`, { activo: !emp.activo });
+      await api.put(`/api/admin/empleados/${emp._id}`, { activo: !emp.activo });
       toast.success(`Empleado ${emp.activo ? 'desactivado' : 'activado'}`);
       cargar();
     } catch {

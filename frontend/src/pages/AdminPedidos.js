@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getTodosPedidos, actualizarPedido } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const ESTADOS = ['', 'pendiente', 'confirmada', 'en_proceso', 'completada', 'cancelada'];
@@ -45,7 +46,7 @@ const ModalProgreso = ({ pedido, onCerrar, onActualizar }) => {
 
   const marcarListo = async (index) => {
     try {
-      await axios.put(`/api/admin/pedidos/${pedido._id}/progreso`, { pasoIndex: index, completado: true, notas: '' });
+      await api.put(`/api/admin/pedidos/${pedido._id}/progreso`, { pasoIndex: index, completado: true, notas: '' });
       toast.success('✅ Paso completado');
       onActualizar(pedido._id);
     } catch { toast.error('Error al actualizar paso'); }
@@ -156,7 +157,7 @@ const AdminPedidos = () => {
   };
 
   const recargarPedido = async (id) => {
-    const res = await axios.get('/api/admin/pedidos');
+    const res = await api.get('/api/admin/pedidos');
     const actualizada = res.data.find(c => c._id === id);
     if (actualizada) setPedidoProgreso(actualizada);
     setPedidos(res.data);

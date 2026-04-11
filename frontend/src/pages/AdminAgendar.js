@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getServicios, getDisponibilidad } from '../services/api';
 import axios from 'axios';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const PASOS = ['Datos del Cliente', 'Servicio', 'Fecha y Hora', 'Confirmar'];
@@ -38,7 +39,7 @@ const AdminAgendar = () => {
   const handleSubmit = async () => {
     setCargando(true);
     try {
-      await axios.post('/api/admin/agendar', form);
+      await api.post('/api/admin/agendar', form);
       toast.success('¡Pedido creado exitosamente!');
       navigate('/admin/pedidos');
     } catch (err) {
