@@ -10,7 +10,7 @@ const AdminEmpleados = () => {
 
   const cargar = () => {
     api.get('/api/admin/empleados')
-      .then(r => setEmpleados(r.data))
+      .then(r => setEmpleados(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error('Error al cargar empleados'))
       .finally(() => setCargando(false));
   };
