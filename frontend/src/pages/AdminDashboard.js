@@ -27,8 +27,10 @@ const AdminDashboard = () => {
 
   if (cargando) return <div className="container page"><div className="spinner" /></div>;
 
-  const maxMes = Math.max(...(datos?.pedidosPorMes?.map(m => m.total) || [1]), 1);
-  const totalEstados = (datos?.pedidosPorEstado || []).reduce((a, e) => a + e.total, 0) || 1;
+  const pedidosPorMes = Array.isArray(pedidosPorMes) ? datos.pedidosPorMes : [];
+  const pedidosPorEstado = Array.isArray(pedidosPorEstado) ? datos.pedidosPorEstado : [];
+  const maxMes = Math.max(...(pedidosPorMes.map(m => m.total) || [1]), 1);
+  const totalEstados = pedidosPorEstado.reduce((a, e) => a + e.total, 0) || 1;
 
   return (
     <div className="container page">
@@ -57,7 +59,7 @@ const AdminDashboard = () => {
         {/* Barras por mes */}
         <div className="card">
           <h2 style={{ fontSize: '1.2rem', color: 'var(--amarillo)', marginBottom: '1.5rem' }}>📊 Pedidos por Mes</h2>
-          {!datos?.pedidosPorMes?.length ? (
+          {!pedidosPorMes?.length ? (
             <p style={{ color: 'var(--blanco-apagado)' }}>Sin datos aún</p>
           ) : (
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.75rem', height: '160px' }}>
@@ -80,7 +82,7 @@ const AdminDashboard = () => {
         {/* Barras por estado */}
         <div className="card">
           <h2 style={{ fontSize: '1.2rem', color: 'var(--amarillo)', marginBottom: '1.25rem' }}>🥧 Pedidos por Estado</h2>
-          {!datos?.pedidosPorEstado?.length ? (
+          {!pedidosPorEstado?.length ? (
             <p style={{ color: 'var(--blanco-apagado)' }}>Sin datos aún</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
