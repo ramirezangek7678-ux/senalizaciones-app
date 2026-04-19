@@ -20,7 +20,7 @@ const Home = () => {
             fontWeight: 800, textTransform: 'uppercase', lineHeight: 1,
             marginBottom: '1.5rem', color: 'var(--blanco)'
           }}>
-            Sistema de <span style={{ color: 'var(--amarillo)' }}>Pedidos</span> SeñalPro
+            Señalamiento <span style={{ color: 'var(--amarillo)' }}>MS</span>
           </h1>
           <p style={{ fontSize: '1.15rem', color: 'var(--blanco-apagado)', lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: '520px', margin: '0 auto 2.5rem' }}>
             Realiza tu pedido de forma rápida y sencilla. Servicios de señalamientos viales, industriales y comerciales a tu alcance.
