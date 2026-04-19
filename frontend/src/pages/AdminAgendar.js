@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getServicios, getDisponibilidad } from '../services/api';
-import axios from 'axios';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -21,13 +19,13 @@ const AdminAgendar = () => {
   });
 
   useEffect(() => {
-    getServicios().then(setServicios).catch(() => toast.error('Error al cargar servicios'));
+    api.get("/api/servicios").then(r => setServicios(Array.isArray(r.data) ? r.data : [])).catch(() => toast.error('Error al cargar servicios'));
   }, []);
 
   useEffect(() => {
     if (form.fecha) {
-      getDisponibilidad(form.fecha)
-        .then(d => setDisponibilidad(d.disponibles))
+      api.get("/api/pedidos/disponibilidad", { params: { fecha: form.fecha } })
+        .then(r => setDisponibilidad(r.data.disponibles || []))
         .catch(() => toast.error('Error al verificar disponibilidad'));
     }
   }, [form.fecha]);

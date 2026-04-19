@@ -34,7 +34,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="container page">
-      <h1 className="page-title">Panel de Administración</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1 className="page-title" style={{ marginBottom: 0 }}>Panel de Administración</h1>
+        <Link to="/admin/agendar" className="btn btn-primary">+ Nuevo Pedido</Link>
+      </div>
       <p className="page-subtitle">Resumen general del sistema de pedidos</p>
 
       {/* Stats */}
