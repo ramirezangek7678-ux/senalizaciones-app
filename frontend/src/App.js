@@ -14,6 +14,7 @@ import AdminAgendar from './pages/AdminAgendar';
 import AdminServicios from './pages/AdminServicios';
 import AdminEmpleados from './pages/AdminEmpleados';
 import AdminTrabajadores from './pages/AdminTrabajadores';
+import RastrearPedido from './pages/RastrearPedido';
 import './index.css';
 
 // Ruta protegida por rol
@@ -34,6 +35,7 @@ const AppRoutes = () => (
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Registro />} />
       <Route path="/servicios" element={<Servicios />} />
+      <Route path="/rastrear" element={<RastrearPedido />} />
 
       {/* Rutas de cliente registrado */}
       <Route path="/mis-pedidos" element={<RutaProtegida roles={['cliente']}><MisPedidos /></RutaProtegida>} />

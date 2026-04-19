@@ -280,6 +280,7 @@ const AdminPedidos = () => {
           <table className="tabla">
             <thead>
               <tr>
+                <th>Nº Pedido</th>
                 <th>Cliente</th>
                 <th>Servicio</th>
                 <th>Fecha</th>
@@ -296,6 +297,9 @@ const AdminPedidos = () => {
                 const pct  = Math.round((comp / tot) * 100);
                 return (
                   <tr key={c._id}>
+                    <td>
+                      <div style={{ fontFamily: "Barlow Condensed", fontSize: "1.1rem", fontWeight: 800, color: "var(--amarillo)", letterSpacing: "1px" }}>{c.numeroPedido || "-"}</div>
+                    </td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{getNombre(c)}</div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--blanco-apagado)' }}>{getTelefono(c)}</div>

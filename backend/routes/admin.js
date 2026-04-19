@@ -182,3 +182,24 @@ router.post('/agendar', auth, esAdmin, async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /api/rastrear/:numero — Rastrear pedido por número (público)
+router.get('/rastrear/:numero', async (req, res) => {
+  try {
+    const pedido = await Pedido.findOne({ numeroPedido: req.params.numero.toUpperCase() })
+      .populate('servicio', 'nombre precio');
+    if (!pedido) return res.status(404).json({ mensaje: 'Pedido no encontrado' });
+    res.json({
+      numeroPedido: pedido.numeroPedido,
+      estado: pedido.estado,
+      servicio: pedido.servicio?.nombre,
+      fecha: pedido.fecha,
+      hora: pedido.hora,
+      progreso: pedido.progreso,
+      notasAdmin: pedido.notasAdmin,
+      nombre: pedido.nombre || pedido.cliente?.nombre || ''
+    });
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al rastrear pedido', error: err.message });
+  }
+});

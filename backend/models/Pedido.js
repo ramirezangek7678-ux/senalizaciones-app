@@ -8,15 +8,14 @@ const progresoPasoSchema = new mongoose.Schema({
 });
 
 const pedidoSchema = new mongoose.Schema({
+  numeroPedido: { type: String, unique: true },
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', default: null },
-  // Datos del cliente sin sufijo
   nombre: { type: String, default: '' },
   apellidoPaterno: { type: String, default: '' },
   apellidoMaterno: { type: String, default: '' },
   telefono: { type: String, default: '' },
   email: { type: String, default: '' },
   empresa: { type: String, default: '' },
-  // Pedido
   servicio: { type: mongoose.Schema.Types.ObjectId, ref: 'Servicio', required: true },
   fecha: { type: Date, required: true },
   hora: { type: String, required: true },
@@ -25,7 +24,6 @@ const pedidoSchema = new mongoose.Schema({
     enum: ['pendiente', 'confirmada', 'en_proceso', 'completada', 'cancelada'],
     default: 'confirmada'
   },
-  // Barra de progreso del trabajo
   progreso: {
     type: [progresoPasoSchema],
     default: () => ([
@@ -43,8 +41,23 @@ const pedidoSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-pedidoSchema.pre('save', function (next) {
+// Generar número de pedido automático tipo MS-2025-0001
+pedidoSchema.pre('save', async function (next) {
   this.updatedAt = Date.now();
+  if (!this.numeroPedido) {
+    const año = new Date().getFullYear();
+    const ultimo = await mongoose.model('Pedido').findOne(
+      { numeroPedido: { $regex: `^MS-${año}-` } },
+      {},
+      { sort: { createdAt: -1 } }
+    );
+    let num = 1;
+    if (ultimo && ultimo.numeroPedido) {
+      const partes = ultimo.numeroPedido.split('-');
+      num = parseInt(partes[2]) + 1;
+    }
+    this.numeroPedido = `MS-${año}-${String(num).padStart(4, '0')}`;
+  }
   next();
 });
 

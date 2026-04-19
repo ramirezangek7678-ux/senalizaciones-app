@@ -22,6 +22,7 @@ const Navbar = () => {
         {!usuario ? (
           <>
             <Link to="/servicios" className={isActive('/servicios')}>Servicios</Link>
+            <Link to="/rastrear" className={isActive('/rastrear')}>Rastrear Pedido</Link>
             <Link to="/login" className={isActive('/login')}>Iniciar Sesión</Link>
             <Link to="/registro" className="btn btn-primary btn-sm">Registrarse</Link>
           </>
