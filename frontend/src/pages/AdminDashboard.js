@@ -27,8 +27,8 @@ const AdminDashboard = () => {
 
   if (cargando) return <div className="container page"><div className="spinner" /></div>;
 
-  const pedidosPorMes = Array.isArray(pedidosPorMes) ? datos.pedidosPorMes : [];
-  const pedidosPorEstado = Array.isArray(pedidosPorEstado) ? datos.pedidosPorEstado : [];
+  const pedidosPorMes = Array.isArray(datos?.pedidosPorMes) ? datos.pedidosPorMes : [];
+  const pedidosPorEstado = Array.isArray(datos?.pedidosPorEstado) ? datos.pedidosPorEstado : [];
   const maxMes = Math.max(...(pedidosPorMes.map(m => m.total) || [1]), 1);
   const totalEstados = pedidosPorEstado.reduce((a, e) => a + e.total, 0) || 1;
 
