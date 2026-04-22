@@ -13,7 +13,8 @@ const AREAS = [
 const formVacio = {
   nombre: '', apellidoPaterno: '', apellidoMaterno: '',
   telefono: '', email: '', puesto: '', area: 'instalacion',
-  numeroEmpleado: '', fechaIngreso: '', notas: ''
+  numeroEmpleado: '', fechaIngreso: '', notas: '',
+  crearAcceso: false, password: ''
 };
 
 const AdminTrabajadores = () => {
@@ -27,7 +28,7 @@ const AdminTrabajadores = () => {
 
   const cargar = () => {
     api.get('/api/trabajadores')
-      .then(r => setTrabajadores(Array.isArray(r.data) ? r.data : []))
+      .then(r => { const data = r.data; setTrabajadores(Array.isArray(data) ? data : []); })
       .catch(() => toast.error('Error al cargar trabajadores'))
       .finally(() => setCargando(false));
   };
@@ -49,16 +50,18 @@ const AdminTrabajadores = () => {
   const abrirNuevo = () => { setEditando(null); setForm(formVacio); setModal(true); };
   const abrirEditar = (t) => {
     setEditando(t);
-    setForm({
-      ...t,
-      fechaIngreso: t.fechaIngreso ? new Date(t.fechaIngreso).toISOString().split('T')[0] : ''
-    });
+    setForm({ ...t, fechaIngreso: t.fechaIngreso ? new Date(t.fechaIngreso).toISOString().split('T')[0] : '', crearAcceso: false, password: '' });
     setModal(true);
   };
 
   const handleGuardar = async () => {
     if (!form.nombre || !form.apellidoPaterno || !form.telefono || !form.puesto)
       return toast.error('Nombre, apellido paterno, teléfono y puesto son requeridos');
+    if (form.crearAcceso && !form.email)
+      return toast.error('El email es requerido para crear acceso al sistema');
+    if (form.crearAcceso && form.password.length < 6)
+      return toast.error('La contraseña debe tener al menos 6 caracteres');
+
     try {
       if (editando) {
         await api.put(`/api/trabajadores/${editando._id}`, form);
@@ -67,6 +70,22 @@ const AdminTrabajadores = () => {
         await api.post('/api/trabajadores', form);
         toast.success('Trabajador registrado');
       }
+
+      // Si se marcó crear acceso, crear empleado en el sistema
+      if (form.crearAcceso && form.email && form.password) {
+        try {
+          await api.post('/api/admin/empleados', {
+            nombre: `${form.nombre} ${form.apellidoPaterno}`,
+            email: form.email,
+            password: form.password,
+            telefono: form.telefono
+          });
+          toast.success(`✅ Acceso al sistema creado para ${form.nombre}`);
+        } catch (err) {
+          toast.error(err.response?.data?.mensaje || 'El trabajador se guardó pero hubo un error al crear el acceso');
+        }
+      }
+
       setModal(false);
       cargar();
     } catch (err) {
@@ -98,7 +117,6 @@ const AdminTrabajadores = () => {
         <button className="btn btn-primary" onClick={abrirNuevo}>+ Nuevo Trabajador</button>
       </div>
 
-      {/* Filtros y búsqueda */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           {[
@@ -155,7 +173,7 @@ const AdminTrabajadores = () => {
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button className="btn btn-secondary btn-sm" onClick={() => abrirEditar(t)}>Editar</button>
                       <button className="btn btn-sm"
-                        style={{ background: t.activo ? 'var(--rojo)' : 'var(--verde)', color: 'white' }}
+                        style={{ background: t.activo ? '#e53e3e' : 'var(--verde)', color: 'white' }}
                         onClick={() => toggleActivo(t)}>
                         {t.activo ? 'Baja' : 'Activar'}
                       </button>
@@ -176,7 +194,6 @@ const AdminTrabajadores = () => {
         </div>
       )}
 
-      {/* Modal */}
       {modal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '1rem' }}>
           <div className="card" style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
@@ -184,7 +201,6 @@ const AdminTrabajadores = () => {
               👷 {editando ? 'Editar Trabajador' : 'Nuevo Trabajador'}
             </h3>
 
-            {/* Nombre */}
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">Nombre *</label>
@@ -200,19 +216,17 @@ const AdminTrabajadores = () => {
               <input className="form-input" value={form.apellidoMaterno} onChange={e => setForm({ ...form, apellidoMaterno: e.target.value })} placeholder="García (opcional)" />
             </div>
 
-            {/* Contacto */}
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">Teléfono *</label>
                 <input className="form-input" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} placeholder="477 123 4567" />
               </div>
               <div className="form-group">
-                <label className="form-label">Email <span style={{ color: 'var(--blanco-apagado)', fontSize: '0.78rem' }}>(opcional)</span></label>
+                <label className="form-label">Email</label>
                 <input className="form-input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="trabajador@empresa.com" />
               </div>
             </div>
 
-            {/* Puesto y área */}
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">Puesto *</label>
@@ -226,7 +240,6 @@ const AdminTrabajadores = () => {
               </div>
             </div>
 
-            {/* Número empleado y fecha */}
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">No. Empleado</label>
@@ -243,7 +256,40 @@ const AdminTrabajadores = () => {
               <textarea className="form-input" rows={2} value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} placeholder="Observaciones del trabajador..." style={{ resize: 'vertical' }} />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+            {/* Sección acceso al sistema */}
+            <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(245,197,24,0.06)', borderRadius: '6px', border: '1px solid rgba(245,197,24,0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: form.crearAcceso ? '1rem' : 0 }}>
+                <input
+                  type="checkbox"
+                  id="crearAcceso"
+                  checked={form.crearAcceso}
+                  onChange={e => setForm({ ...form, crearAcceso: e.target.checked, password: '' })}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <label htmlFor="crearAcceso" style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--amarillo)' }}>
+                  🔐 Dar acceso al sistema para ver pedidos
+                </label>
+              </div>
+              {form.crearAcceso && (
+                <div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--blanco-apagado)', marginBottom: '0.75rem' }}>
+                    El empleado podrá iniciar sesión con el email de arriba y esta contraseña.
+                  </p>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Contraseña *</label>
+                    <input
+                      className="form-input"
+                      type="password"
+                      value={form.password}
+                      onChange={e => setForm({ ...form, password: e.target.value })}
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
               <button className="btn btn-secondary" onClick={() => setModal(false)}>Cancelar</button>
               <button className="btn btn-primary" onClick={handleGuardar}>
                 {editando ? 'Guardar Cambios' : 'Registrar Trabajador'}
