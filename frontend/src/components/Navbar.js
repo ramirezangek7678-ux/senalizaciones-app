@@ -23,8 +23,7 @@ const Navbar = () => {
           <>
             <Link to="/servicios" className={isActive('/servicios')}>Servicios</Link>
             <Link to="/rastrear" className={isActive('/rastrear')}>Rastrear Pedido</Link>
-            <Link to="/login" className={isActive('/login')}>Iniciar Sesión</Link>
-            <Link to="/registro" className="btn btn-primary btn-sm">Registrarse</Link>
+            <Link to="/login" className={isActive('/login')} style={{ display: 'none' }}>Iniciar Sesión</Link>
           </>
         ) : usuario.rol === 'admin' ? (
           <>
@@ -33,7 +32,7 @@ const Navbar = () => {
             <Link to="/admin/agendar" className="btn btn-primary btn-sm">+ Nuevo Pedido</Link>
             <Link to="/admin/servicios" className={isActive('/admin/servicios')}>Servicios</Link>
             <Link to="/admin/trabajadores" className={isActive('/admin/trabajadores')}>Nuevo Trabajador</Link>
-            <Link to="/admin/empleados" className={isActive('/admin/empleados')}>Empleados</Link>
+
             <button onClick={handleLogout} className="btn btn-secondary btn-sm">Salir</button>
           </>
         ) : usuario.rol === 'empleado' ? (
