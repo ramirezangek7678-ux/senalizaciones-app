@@ -24,10 +24,10 @@ const esAdmin = (req, res, next) => {
   next();
 };
 
-const esAdminOEmpleado = (req, res, next) => {
-  if (req.usuario.rol !== 'admin' && req.usuario.rol !== 'empleado')
+const esAdminOVoluntario = (req, res, next) => {
+  if (req.usuario.rol !== 'admin' && req.usuario.rol !== 'voluntario')
     return res.status(403).json({ mensaje: 'Acceso denegado' });
   next();
 };
 
-module.exports = { auth, esAdmin, esAdminOEmpleado };
+module.exports = { auth, esAdmin, esAdminOVoluntario };

@@ -1,205 +1,199 @@
 const router = require('express').Router();
-const Pedido = require('../models/Pedido');
+const Donacion = require('../models/Donacion');
+const SolicitudDonacion = require('../models/SolicitudDonacion');
 const Usuario = require('../models/Usuario');
-const { auth, esAdmin, esAdminOEmpleado } = require('../middleware/auth');
+const { auth, esAdmin, esAdminOVoluntario } = require('../middleware/auth');
 
-// GET /api/admin/citas
-router.get('/pedidos', auth, esAdminOEmpleado, async (req, res) => {
+router.get('/donaciones', auth, esAdminOVoluntario, async (req, res) => {
   try {
     const { estado } = req.query;
     const filtro = {};
     if (estado) filtro.estado = estado;
-    const pedidos = await Pedido.find(filtro)
-      .populate('cliente', 'nombre email telefono empresa')
-      .populate('servicio', 'nombre precio duracionMinutos categoria')
+    const donaciones = await Donacion.find(filtro)
+      .populate('donante', 'nombre email telefono organizacion')
+      .populate('producto', 'nombre unidad categoria meta')
       .sort({ fecha: 1, hora: 1 });
-    res.json(pedidos);
+    res.json(donaciones);
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al obtener pedidos', error: err.message });
+    res.status(500).json({ mensaje: 'Error al obtener donaciones', error: err.message });
   }
 });
 
-// PUT /api/admin/citas/:id — actualizar estado y notas
-router.put('/pedidos/:id', auth, esAdminOEmpleado, async (req, res) => {
+router.put('/donaciones/:id', auth, esAdminOVoluntario, async (req, res) => {
   try {
     const { estado, notasAdmin } = req.body;
-    if (req.usuario.rol === 'empleado' && estado !== 'completada' && estado !== 'en_proceso')
+    if (req.usuario.rol === 'voluntario' && estado !== 'entregada' && estado !== 'en_camino')
       return res.status(403).json({ mensaje: 'Acceso denegado' });
-    const pedido = await Pedido.findByIdAndUpdate(
+    const donacion = await Donacion.findByIdAndUpdate(
       req.params.id,
       { estado, notasAdmin, updatedAt: Date.now() },
       { new: true }
-    ).populate('servicio', 'nombre');
-    if (!pedido) return res.status(404).json({ mensaje: 'Pedido no encontrado' });
-    res.json(pedido);
+    ).populate('producto', 'nombre');
+    if (!donacion) return res.status(404).json({ mensaje: 'Donación no encontrada' });
+    res.json(donacion);
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al actualizar pedido', error: err.message });
+    res.status(500).json({ mensaje: 'Error al actualizar donación', error: err.message });
   }
 });
 
-// PUT /api/admin/citas/:id/progreso — actualizar un paso del progreso
-router.put('/pedidos/:id/progreso', auth, esAdminOEmpleado, async (req, res) => {
+router.put('/donaciones/:id/progreso', auth, esAdminOVoluntario, async (req, res) => {
   try {
     const { pasoIndex, completado, notas } = req.body;
-    const pedido = await Pedido.findById(req.params.id);
-    if (!pedido) return res.status(404).json({ mensaje: 'Pedido no encontrado' });
+    const donacion = await Donacion.findById(req.params.id);
+    if (!donacion) return res.status(404).json({ mensaje: 'Donación no encontrada' });
 
-    pedido.progreso[pasoIndex].completado = completado;
-    pedido.progreso[pasoIndex].notas = notas || '';
-    pedido.progreso[pasoIndex].fecha = completado ? new Date() : null;
+    donacion.progreso[pasoIndex].completado = completado;
+    donacion.progreso[pasoIndex].notas = notas || '';
+    donacion.progreso[pasoIndex].fecha = completado ? new Date() : null;
 
-    // Auto cambiar estado según progreso
-    const totalCompletados = pedido.progreso.filter(p => p.completado).length;
-    if (totalCompletados === pedido.progreso.length) {
-      pedido.estado = 'completada';
+    const totalCompletados = donacion.progreso.filter(p => p.completado).length;
+    if (totalCompletados === donacion.progreso.length) {
+      donacion.estado = 'entregada';
     } else if (totalCompletados > 0) {
-      pedido.estado = 'en_proceso';
+      donacion.estado = 'en_camino';
     }
 
-    pedido.updatedAt = Date.now();
-    await pedido.save();
-    res.json(pedido);
+    donacion.updatedAt = Date.now();
+    await donacion.save();
+    res.json(donacion);
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al actualizar progreso', error: err.message });
   }
 });
 
-// GET /api/admin/dashboard
-router.get('/dashboard', auth, esAdminOEmpleado, async (req, res) => {
+router.get('/dashboard', auth, esAdminOVoluntario, async (req, res) => {
   try {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     const manana = new Date(hoy);
     manana.setDate(manana.getDate() + 1);
 
-    const [totalPedidos, pedidosHoy, pendientes, confirmadas, empleados] = await Promise.all([
-      Pedido.countDocuments(),
-      Pedido.countDocuments({ fecha: { $gte: hoy, $lt: manana } }),
-      Pedido.countDocuments({ estado: 'pendiente' }),
-      Pedido.countDocuments({ estado: { $in: ['confirmada', 'en_proceso'] } }),
-      Usuario.countDocuments({ rol: 'empleado' })
+    const [totalDonaciones, donacionesHoy, pendientes, confirmadas, voluntarios] = await Promise.all([
+      Donacion.countDocuments(),
+      Donacion.countDocuments({ fecha: { $gte: hoy, $lt: manana } }),
+      Donacion.countDocuments({ estado: 'pendiente' }),
+      Donacion.countDocuments({ estado: { $in: ['confirmada', 'en_camino'] } }),
+      Usuario.countDocuments({ rol: 'voluntario' })
     ]);
 
-    const proximosPedidos = await Pedido.find({
+    const proximasDonaciones = await Donacion.find({
       fecha: { $gte: hoy },
-      estado: { $in: ['pendiente', 'confirmada', 'en_proceso'] }
+      estado: { $in: ['pendiente', 'confirmada', 'en_camino'] }
     })
-      .populate('servicio', 'nombre')
+      .populate('producto', 'nombre')
       .sort({ fecha: 1, hora: 1 })
       .limit(5);
 
-    // Pedidos por estado
-    const estadosCounts = await Pedido.aggregate([
+    const estadosCounts = await Donacion.aggregate([
       { $group: { _id: '$estado', total: { $sum: 1 } } }
     ]);
-    const pedidosPorEstado = estadosCounts.map(e => ({ estado: e._id, total: e.total }));
+    const donacionesPorEstado = estadosCounts.map(e => ({ estado: e._id, total: e.total }));
 
-    // Pedidos por mes (últimos 6 meses)
     const hace6Meses = new Date();
     hace6Meses.setMonth(hace6Meses.getMonth() - 5);
     hace6Meses.setDate(1);
     hace6Meses.setHours(0, 0, 0, 0);
-    const pedidosPorMesRaw = await Pedido.aggregate([
+    const donacionesPorMesRaw = await Donacion.aggregate([
       { $match: { createdAt: { $gte: hace6Meses } } },
       { $group: { _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, total: { $sum: 1 } } },
       { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
     const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    const pedidosPorMes = pedidosPorMesRaw.map(m => ({
+    const donacionesPorMes = donacionesPorMesRaw.map(m => ({
       mes: meses[m._id.month - 1],
       total: m.total
     }));
 
-    res.json({ totalPedidos, pedidosHoy, pendientes, confirmadas, empleados, proximosPedidos, pedidosPorEstado, pedidosPorMes });
+    const solicitudesDonantes = await SolicitudDonacion.find({ estado: 'pendiente' })
+      .sort({ fecha: 1, hora: 1 })
+      .limit(10);
+
+    res.json({ totalDonaciones, donacionesHoy, pendientes, confirmadas, voluntarios, proximasDonaciones, donacionesPorEstado, donacionesPorMes, solicitudesDonantes });
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al obtener estadísticas', error: err.message });
   }
 });
 
-// GET /api/admin/empleados
-router.get('/empleados', auth, esAdmin, async (req, res) => {
+router.get('/voluntarios', auth, esAdmin, async (req, res) => {
   try {
-    const empleados = await Usuario.find({ rol: 'empleado' }).select('-password').sort({ createdAt: -1 });
-    res.json(empleados);
+    const voluntarios = await Usuario.find({ rol: 'voluntario' }).select('-password').sort({ createdAt: -1 });
+    res.json(voluntarios);
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al obtener empleados', error: err.message });
+    res.status(500).json({ mensaje: 'Error al obtener voluntarios', error: err.message });
   }
 });
 
-// POST /api/admin/empleados
-router.post('/empleados', auth, esAdmin, async (req, res) => {
+router.post('/voluntarios', auth, esAdmin, async (req, res) => {
   try {
     const { nombre, email, password, telefono } = req.body;
     const existe = await Usuario.findOne({ email });
     if (existe) return res.status(400).json({ mensaje: 'El email ya está registrado' });
-    const empleado = new Usuario({ nombre, email, password, telefono, rol: 'empleado' });
-    await empleado.save();
-    res.status(201).json({ mensaje: 'Empleado creado', empleado: { id: empleado._id, nombre: empleado.nombre, email: empleado.email } });
+    const voluntario = new Usuario({ nombre, email, password, telefono, rol: 'voluntario' });
+    await voluntario.save();
+    res.status(201).json({ mensaje: 'Voluntario creado', voluntario: { id: voluntario._id, nombre: voluntario.nombre, email: voluntario.email } });
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al crear empleado', error: err.message });
+    res.status(500).json({ mensaje: 'Error al crear voluntario', error: err.message });
   }
 });
 
-// PUT /api/admin/empleados/:id
-router.put('/empleados/:id', auth, esAdmin, async (req, res) => {
+router.put('/voluntarios/:id', auth, esAdmin, async (req, res) => {
   try {
-    const empleado = await Usuario.findByIdAndUpdate(req.params.id, req.body, { new: true }).select('-password');
-    if (!empleado) return res.status(404).json({ mensaje: 'Empleado no encontrado' });
-    res.json(empleado);
+    const voluntario = await Usuario.findByIdAndUpdate(req.params.id, req.body, { new: true }).select('-password');
+    if (!voluntario) return res.status(404).json({ mensaje: 'Voluntario no encontrado' });
+    res.json(voluntario);
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al actualizar empleado', error: err.message });
+    res.status(500).json({ mensaje: 'Error al actualizar voluntario', error: err.message });
   }
 });
 
-// POST /api/admin/agendar
-router.post('/agendar', auth, esAdmin, async (req, res) => {
+router.post('/registrar-donacion', auth, esAdmin, async (req, res) => {
   try {
-    const { nombre, apellidoPaterno, apellidoMaterno, telefono, email, empresa, servicio, fecha, hora, notas, direccion } = req.body;
+    const { nombre, apellidoPaterno, apellidoMaterno, telefono, email, organizacion, producto, cantidad, unidad, fecha, hora, notas, direccion } = req.body;
 
     if (!nombre || !apellidoPaterno || !telefono)
       return res.status(400).json({ mensaje: 'Nombre, apellido paterno y teléfono son requeridos' });
 
-    const conflicto = await Pedido.findOne({
+    const conflicto = await Donacion.findOne({
       fecha: new Date(fecha), hora,
-      estado: { $in: ['pendiente', 'confirmada', 'en_proceso'] }
+      estado: { $in: ['pendiente', 'confirmada', 'en_camino'] }
     });
     if (conflicto) return res.status(400).json({ mensaje: 'Ese horario ya está ocupado' });
 
-    const pedido = new Pedido({
+    const donacion = new Donacion({
       nombre, apellidoPaterno,
       apellidoMaterno: apellidoMaterno || '',
       telefono, email: email || '',
-      empresa: empresa || '',
-      servicio, fecha: new Date(fecha), hora,
+      organizacion: organizacion || '',
+      producto, cantidad: cantidad || 1, unidad: unidad || 'pieza',
+      fecha: new Date(fecha), hora,
       notas, direccion, estado: 'confirmada'
     });
-    await pedido.save();
-    await pedido.populate('servicio', 'nombre precio');
-    res.status(201).json(pedido);
+    await donacion.save();
+    await donacion.populate('producto', 'nombre unidad');
+    res.status(201).json(donacion);
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al crear pedido', error: err.message });
+    res.status(500).json({ mensaje: 'Error al registrar donación', error: err.message });
   }
 });
 
 module.exports = router;
 
-// GET /api/rastrear/:numero — Rastrear pedido por número (público)
 router.get('/rastrear/:numero', async (req, res) => {
   try {
-    const pedido = await Pedido.findOne({ numeroPedido: req.params.numero.toUpperCase() })
-      .populate('servicio', 'nombre precio');
-    if (!pedido) return res.status(404).json({ mensaje: 'Pedido no encontrado' });
+    const donacion = await Donacion.findOne({ numeroDonacion: req.params.numero.toUpperCase() })
+      .populate('producto', 'nombre unidad');
+    if (!donacion) return res.status(404).json({ mensaje: 'Donación no encontrada' });
     res.json({
-      numeroPedido: pedido.numeroPedido,
-      estado: pedido.estado,
-      servicio: pedido.servicio?.nombre,
-      fecha: pedido.fecha,
-      hora: pedido.hora,
-      progreso: pedido.progreso,
-      notasAdmin: pedido.notasAdmin,
-      nombre: pedido.nombre || pedido.cliente?.nombre || ''
+      numeroDonacion: donacion.numeroDonacion,
+      estado: donacion.estado,
+      producto: donacion.producto?.nombre,
+      fecha: donacion.fecha,
+      hora: donacion.hora,
+      progreso: donacion.progreso,
+      notasAdmin: donacion.notasAdmin,
+      nombre: donacion.nombre || donacion.donante?.nombre || ''
     });
   } catch (err) {
-    res.status(500).json({ mensaje: 'Error al rastrear pedido', error: err.message });
+    res.status(500).json({ mensaje: 'Error al rastrear donación', error: err.message });
   }
 });

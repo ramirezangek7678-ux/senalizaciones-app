@@ -3,22 +3,23 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const AREAS = [
-  { value: 'instalacion', label: 'Instalación' },
-  { value: 'ventas', label: 'Ventas' },
-  { value: 'diseño', label: 'Diseño' },
+  { value: 'recoleccion', label: 'Recolección' },
+  { value: 'clasificacion', label: 'Clasificación' },
+  { value: 'entrega', label: 'Entrega' },
+  { value: 'logistica', label: 'Logística' },
   { value: 'administracion', label: 'Administración' },
   { value: 'otro', label: 'Otro' },
 ];
 
 const formVacio = {
   nombre: '', apellidoPaterno: '', apellidoMaterno: '',
-  telefono: '', email: '', puesto: '', area: 'instalacion',
-  numeroEmpleado: '', fechaIngreso: '', notas: '',
+  telefono: '', email: '', funcion: '', area: 'recoleccion',
+  numeroVoluntario: '', fechaIngreso: '', notas: '',
   crearAcceso: false, password: ''
 };
 
-const AdminTrabajadores = () => {
-  const [trabajadores, setTrabajadores] = useState([]);
+const AdminVoluntariosRegistro = () => {
+  const [voluntarios, setVoluntarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -27,23 +28,23 @@ const AdminTrabajadores = () => {
   const [busqueda, setBusqueda] = useState('');
 
   const cargar = () => {
-    api.get('/api/trabajadores')
-      .then(r => { const data = r.data; setTrabajadores(Array.isArray(data) ? data : []); })
-      .catch(() => toast.error('Error al cargar trabajadores'))
+    api.get('/api/voluntarios')
+      .then(r => { const data = r.data; setVoluntarios(Array.isArray(data) ? data : []); })
+      .catch(() => toast.error('Error al cargar voluntarios'))
       .finally(() => setCargando(false));
   };
 
   useEffect(() => { cargar(); }, []);
 
-  const trabajadoresFiltrados = trabajadores
+  const filtrados = voluntarios
     .filter(t => filtro === 'activos' ? t.activo : filtro === 'inactivos' ? !t.activo : true)
     .filter(t => {
       const texto = busqueda.toLowerCase();
       return (
         t.nombre.toLowerCase().includes(texto) ||
         t.apellidoPaterno.toLowerCase().includes(texto) ||
-        t.puesto.toLowerCase().includes(texto) ||
-        (t.numeroEmpleado && t.numeroEmpleado.toLowerCase().includes(texto))
+        t.funcion.toLowerCase().includes(texto) ||
+        (t.numeroVoluntario && t.numeroVoluntario.toLowerCase().includes(texto))
       );
     });
 
@@ -55,8 +56,8 @@ const AdminTrabajadores = () => {
   };
 
   const handleGuardar = async () => {
-    if (!form.nombre || !form.apellidoPaterno || !form.telefono || !form.puesto)
-      return toast.error('Nombre, apellido paterno, teléfono y puesto son requeridos');
+    if (!form.nombre || !form.apellidoPaterno || !form.telefono || !form.funcion)
+      return toast.error('Nombre, apellido paterno, teléfono y función son requeridos');
     if (form.crearAcceso && !form.email)
       return toast.error('El email es requerido para crear acceso al sistema');
     if (form.crearAcceso && form.password.length < 6)
@@ -64,17 +65,16 @@ const AdminTrabajadores = () => {
 
     try {
       if (editando) {
-        await api.put(`/api/trabajadores/${editando._id}`, form);
-        toast.success('Trabajador actualizado');
+        await api.put(`/api/voluntarios/${editando._id}`, form);
+        toast.success('Voluntario actualizado');
       } else {
-        await api.post('/api/trabajadores', form);
-        toast.success('Trabajador registrado');
+        await api.post('/api/voluntarios', form);
+        toast.success('Voluntario registrado');
       }
 
-      // Si se marcó crear acceso, crear empleado en el sistema
       if (form.crearAcceso && form.email && form.password) {
         try {
-          await api.post('/api/admin/empleados', {
+          await api.post('/api/admin/voluntarios', {
             nombre: `${form.nombre} ${form.apellidoPaterno}`,
             email: form.email,
             password: form.password,
@@ -82,7 +82,7 @@ const AdminTrabajadores = () => {
           });
           toast.success(`✅ Acceso al sistema creado para ${form.nombre}`);
         } catch (err) {
-          toast.error(err.response?.data?.mensaje || 'El trabajador se guardó pero hubo un error al crear el acceso');
+          toast.error(err.response?.data?.mensaje || 'El voluntario se guardó pero hubo un error al crear el acceso');
         }
       }
 
@@ -97,11 +97,11 @@ const AdminTrabajadores = () => {
     const accion = t.activo ? 'dar de baja' : 'reactivar';
     if (!window.confirm(`¿Deseas ${accion} a ${t.nombre} ${t.apellidoPaterno}?`)) return;
     try {
-      await api.put(`/api/trabajadores/${t._id}`, { activo: !t.activo });
-      toast.success(`Trabajador ${t.activo ? 'dado de baja' : 'reactivado'}`);
+      await api.put(`/api/voluntarios/${t._id}`, { activo: !t.activo });
+      toast.success(`Voluntario ${t.activo ? 'dado de baja' : 'reactivado'}`);
       cargar();
     } catch {
-      toast.error('Error al actualizar trabajador');
+      toast.error('Error al actualizar voluntario');
     }
   };
 
@@ -111,10 +111,10 @@ const AdminTrabajadores = () => {
     <div className="container page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
         <div>
-          <h1 className="page-title">Trabajadores</h1>
-          <p className="page-subtitle">{trabajadores.filter(t => t.activo).length} trabajadores activos</p>
+          <h1 className="page-title">Voluntarios</h1>
+          <p className="page-subtitle">{voluntarios.filter(t => t.activo).length} voluntarios activos</p>
         </div>
-        <button className="btn btn-primary" onClick={abrirNuevo}>+ Nuevo Trabajador</button>
+        <button className="btn btn-primary" onClick={abrirNuevo}>+ Nuevo Voluntario</button>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -132,7 +132,7 @@ const AdminTrabajadores = () => {
         </div>
         <input className="form-input" style={{ maxWidth: '280px', padding: '0.5rem 1rem' }}
           value={busqueda} onChange={e => setBusqueda(e.target.value)}
-          placeholder="🔍 Buscar por nombre o puesto..." />
+          placeholder="🔍 Buscar por nombre o función..." />
       </div>
 
       {cargando ? <div className="spinner" /> : (
@@ -140,9 +140,9 @@ const AdminTrabajadores = () => {
           <table className="tabla">
             <thead>
               <tr>
-                <th>No. Emp</th>
+                <th>No. Vol.</th>
                 <th>Nombre Completo</th>
-                <th>Puesto</th>
+                <th>Función</th>
                 <th>Área</th>
                 <th>Teléfono</th>
                 <th>Ingreso</th>
@@ -151,14 +151,14 @@ const AdminTrabajadores = () => {
               </tr>
             </thead>
             <tbody>
-              {trabajadoresFiltrados.map(t => (
+              {filtrados.map(t => (
                 <tr key={t._id} style={{ opacity: t.activo ? 1 : 0.5 }}>
-                  <td style={{ color: 'var(--amarillo)', fontWeight: 700 }}>{t.numeroEmpleado || '—'}</td>
+                  <td style={{ color: 'var(--amarillo)', fontWeight: 700 }}>{t.numeroVoluntario || '—'}</td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{t.nombre} {t.apellidoPaterno} {t.apellidoMaterno}</div>
                     {t.email && <div style={{ fontSize: '0.8rem', color: 'var(--blanco-apagado)' }}>{t.email}</div>}
                   </td>
-                  <td>{t.puesto}</td>
+                  <td>{t.funcion}</td>
                   <td style={{ fontSize: '0.85rem' }}>{etiquetaArea(t.area)}</td>
                   <td>{t.telefono}</td>
                   <td style={{ fontSize: '0.85rem', color: 'var(--blanco-apagado)' }}>
@@ -181,11 +181,11 @@ const AdminTrabajadores = () => {
                   </td>
                 </tr>
               ))}
-              {trabajadoresFiltrados.length === 0 && (
+              {filtrados.length === 0 && (
                 <tr><td colSpan={8}>
                   <div className="empty-state" style={{ padding: '2rem' }}>
-                    <div className="icon">👷</div>
-                    <p>No hay trabajadores registrados</p>
+                    <div className="icon">🤝</div>
+                    <p>No hay voluntarios registrados</p>
                   </div>
                 </td></tr>
               )}
@@ -198,7 +198,7 @@ const AdminTrabajadores = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '1rem' }}>
           <div className="card" style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ color: 'var(--amarillo)', marginBottom: '1.5rem', fontSize: '1.4rem' }}>
-              👷 {editando ? 'Editar Trabajador' : 'Nuevo Trabajador'}
+              🤝 {editando ? 'Editar Voluntario' : 'Nuevo Voluntario'}
             </h3>
 
             <div className="grid-2">
@@ -223,14 +223,14 @@ const AdminTrabajadores = () => {
               </div>
               <div className="form-group">
                 <label className="form-label">Email</label>
-                <input className="form-input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="trabajador@empresa.com" />
+                <input className="form-input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="voluntario@correo.com" />
               </div>
             </div>
 
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Puesto *</label>
-                <input className="form-input" value={form.puesto} onChange={e => setForm({ ...form, puesto: e.target.value })} placeholder="Técnico Instalador" />
+                <label className="form-label">Función *</label>
+                <input className="form-input" value={form.funcion} onChange={e => setForm({ ...form, funcion: e.target.value })} placeholder="Recolector, Clasificador..." />
               </div>
               <div className="form-group">
                 <label className="form-label">Área</label>
@@ -242,8 +242,8 @@ const AdminTrabajadores = () => {
 
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">No. Empleado</label>
-                <input className="form-input" value={form.numeroEmpleado} onChange={e => setForm({ ...form, numeroEmpleado: e.target.value })} placeholder="EMP-001" />
+                <label className="form-label">No. Voluntario</label>
+                <input className="form-input" value={form.numeroVoluntario} onChange={e => setForm({ ...form, numeroVoluntario: e.target.value })} placeholder="VOL-001" />
               </div>
               <div className="form-group">
                 <label className="form-label">Fecha de Ingreso</label>
@@ -253,37 +253,28 @@ const AdminTrabajadores = () => {
 
             <div className="form-group">
               <label className="form-label">Notas</label>
-              <textarea className="form-input" rows={2} value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} placeholder="Observaciones del trabajador..." style={{ resize: 'vertical' }} />
+              <textarea className="form-input" rows={2} value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })} placeholder="Observaciones..." style={{ resize: 'vertical' }} />
             </div>
 
-            {/* Sección acceso al sistema */}
             <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(245,197,24,0.06)', borderRadius: '6px', border: '1px solid rgba(245,197,24,0.2)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: form.crearAcceso ? '1rem' : 0 }}>
-                <input
-                  type="checkbox"
-                  id="crearAcceso"
-                  checked={form.crearAcceso}
+                <input type="checkbox" id="crearAcceso" checked={form.crearAcceso}
                   onChange={e => setForm({ ...form, crearAcceso: e.target.checked, password: '' })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                 <label htmlFor="crearAcceso" style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--amarillo)' }}>
-                  🔐 Dar acceso al sistema para ver pedidos
+                  🔐 Dar acceso al sistema para ver donaciones
                 </label>
               </div>
               {form.crearAcceso && (
                 <div>
                   <p style={{ fontSize: '0.82rem', color: 'var(--blanco-apagado)', marginBottom: '0.75rem' }}>
-                    El empleado podrá iniciar sesión con el email de arriba y esta contraseña.
+                    El voluntario podrá iniciar sesión con el email y esta contraseña.
                   </p>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label">Contraseña *</label>
-                    <input
-                      className="form-input"
-                      type="password"
-                      value={form.password}
+                    <input className="form-input" type="password" value={form.password}
                       onChange={e => setForm({ ...form, password: e.target.value })}
-                      placeholder="Mínimo 6 caracteres"
-                    />
+                      placeholder="Mínimo 6 caracteres" />
                   </div>
                 </div>
               )}
@@ -292,7 +283,7 @@ const AdminTrabajadores = () => {
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
               <button className="btn btn-secondary" onClick={() => setModal(false)}>Cancelar</button>
               <button className="btn btn-primary" onClick={handleGuardar}>
-                {editando ? 'Guardar Cambios' : 'Registrar Trabajador'}
+                {editando ? 'Guardar Cambios' : 'Registrar Voluntario'}
               </button>
             </div>
           </div>
@@ -302,4 +293,4 @@ const AdminTrabajadores = () => {
   );
 };
 
-export default AdminTrabajadores;
+export default AdminVoluntariosRegistro;

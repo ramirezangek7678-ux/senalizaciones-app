@@ -10,40 +10,40 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// SERVICIOS
-export const getServicios = (categoria) =>
-  api.get('/api/servicios', { params: { categoria } }).then(r => r.data);
+// PRODUCTOS (insumos a donar)
+export const getProductos = (categoria) =>
+  api.get('/api/productos', { params: { categoria } }).then(r => r.data);
 
-// PEDIDOS
-export const getMisPedidos = () =>
-  api.get('/api/pedidos').then(r => r.data);
+export const crearProducto = (datos) =>
+  api.post('/api/productos', datos).then(r => r.data);
 
-export const crearPedido = (datos) =>
-  api.post('/api/pedidos', datos).then(r => r.data);
+export const actualizarProducto = (id, datos) =>
+  api.put(`/api/productos/${id}`, datos).then(r => r.data);
 
-export const cancelarPedido = (id) =>
-  api.put(`/api/pedidos/${id}/cancelar`).then(r => r.data);
+// DONACIONES
+export const getMisDonaciones = () =>
+  api.get('/api/donaciones').then(r => r.data);
+
+export const crearDonacion = (datos) =>
+  api.post('/api/donaciones', datos).then(r => r.data);
+
+export const cancelarDonacion = (id) =>
+  api.put(`/api/donaciones/${id}/cancelar`).then(r => r.data);
 
 export const getDisponibilidad = (fecha) =>
-  api.get('/api/pedidos/disponibilidad', { params: { fecha } }).then(r => r.data);
+  api.get('/api/donaciones/disponibilidad', { params: { fecha } }).then(r => r.data);
 
 // ADMIN
 export const getDashboard = () =>
   api.get('/api/admin/dashboard').then(r => r.data);
 
-export const getTodosPedidos = (filtros) =>
-  api.get('/api/admin/pedidos', { params: filtros }).then(r => r.data);
+export const getTodasDonaciones = (filtros) =>
+  api.get('/api/admin/donaciones', { params: filtros }).then(r => r.data);
 
-export const actualizarPedido = (id, datos) =>
-  api.put(`/api/admin/pedidos/${id}`, datos).then(r => r.data);
+export const actualizarDonacion = (id, datos) =>
+  api.put(`/api/admin/donaciones/${id}`, datos).then(r => r.data);
 
-export const getClientes = () =>
-  api.get('/api/admin/clientes').then(r => r.data);
-
-export const crearServicio = (datos) =>
-  api.post('/api/servicios', datos).then(r => r.data);
-
-export const actualizarServicio = (id, datos) =>
-  api.put(`/api/servicios/${id}`, datos).then(r => r.data);
+export const getDonantes = () =>
+  api.get('/api/admin/donantes').then(r => r.data);
 
 export default api;

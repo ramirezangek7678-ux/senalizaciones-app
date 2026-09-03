@@ -6,18 +6,19 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
-import Servicios from './pages/Servicios';
-import MisPedidos from './pages/MisPedidos';
+import Productos from './pages/Productos';
+import MisDonaciones from './pages/MisDonaciones';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminPedidos from './pages/AdminPedidos';
-import AdminAgendar from './pages/AdminAgendar';
-import AdminServicios from './pages/AdminServicios';
-import AdminEmpleados from './pages/AdminEmpleados';
-import AdminTrabajadores from './pages/AdminTrabajadores';
-import RastrearPedido from './pages/RastrearPedido';
+import AdminDonaciones from './pages/AdminDonaciones';
+import RegistrarDonacion from './pages/AdminRegistrarDonacion';
+import Solicitar from './pages/QuieroDonar';
+import AdminSolicitudes from './pages/AdminSolicitudes';
+import AdminProductos from './pages/AdminProductos';
+import AdminVoluntarios from './pages/AdminVoluntarios';
+import AdminVoluntariosRegistro from './pages/AdminVoluntariosRegistro';
+import RastrearDonacion from './pages/RastrearDonacion';
 import './index.css';
 
-// Ruta protegida por rol
 const RutaProtegida = ({ children, roles }) => {
   const { usuario, cargando } = useAuth();
   if (cargando) return <div className="spinner" style={{ marginTop: '4rem' }} />;
@@ -30,25 +31,22 @@ const AppRoutes = () => (
   <>
     <Navbar />
     <Routes>
-      {/* Rutas PÚBLICAS — cualquier persona puede entrar */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/registro" element={<Registro />} />
-      <Route path="/servicios" element={<Servicios />} />
-      <Route path="/rastrear" element={<RastrearPedido />} />
+      <Route path="/productos" element={<Productos />} />
+      <Route path="/rastrear" element={<RastrearDonacion />} />
+      <Route path="/solicitar" element={<Solicitar />} />
 
-      {/* Rutas de cliente registrado */}
-      <Route path="/mis-pedidos" element={<RutaProtegida roles={['cliente']}><MisPedidos /></RutaProtegida>} />
+      <Route path="/mis-donaciones" element={<RutaProtegida roles={['donante']}><MisDonaciones /></RutaProtegida>} />
 
-      {/* Rutas de admin y empleado */}
-      <Route path="/admin" element={<RutaProtegida roles={['admin', 'empleado']}><AdminDashboard /></RutaProtegida>} />
-      <Route path="/admin/pedidos" element={<RutaProtegida roles={['admin', 'empleado']}><AdminPedidos /></RutaProtegida>} />
+      <Route path="/admin" element={<RutaProtegida roles={['admin', 'voluntario']}><AdminDashboard /></RutaProtegida>} />
+      <Route path="/admin/donaciones" element={<RutaProtegida roles={['admin', 'voluntario']}><AdminDonaciones /></RutaProtegida>} />
+      <Route path="/admin/solicitudes" element={<RutaProtegida roles={['admin', 'voluntario']}><AdminSolicitudes /></RutaProtegida>} />
 
-      {/* Rutas solo admin */}
-      <Route path="/admin/agendar" element={<RutaProtegida roles={['admin']}><AdminAgendar /></RutaProtegida>} />
-      <Route path="/admin/servicios" element={<RutaProtegida roles={['admin']}><AdminServicios /></RutaProtegida>} />
-      <Route path="/admin/empleados" element={<RutaProtegida roles={['admin']}><AdminEmpleados /></RutaProtegida>} />
-      <Route path="/admin/trabajadores" element={<RutaProtegida roles={['admin']}><AdminTrabajadores /></RutaProtegida>} />
+      <Route path="/admin/registrar" element={<RutaProtegida roles={['admin']}><RegistrarDonacion /></RutaProtegida>} />
+      <Route path="/admin/productos" element={<RutaProtegida roles={['admin']}><AdminProductos /></RutaProtegida>} />
+      <Route path="/admin/voluntarios" element={<RutaProtegida roles={['admin']}><AdminVoluntarios /></RutaProtegida>} />
+      <Route path="/admin/voluntarios-registro" element={<RutaProtegida roles={['admin']}><AdminVoluntariosRegistro /></RutaProtegida>} />
 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

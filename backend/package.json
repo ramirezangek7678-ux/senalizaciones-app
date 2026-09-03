@@ -1,7 +1,7 @@
 {
-  "name": "senalizaciones-backend",
+  "name": "donaciones-backend",
   "version": "1.0.0",
-  "description": "Backend para sistema de citas - Empresa de Señalamientos",
+  "description": "Backend para sistema de donaciones de insumos",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

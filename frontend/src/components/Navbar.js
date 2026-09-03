@@ -17,34 +17,34 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-logo">⚠ Señalamiento<span> MS</span></Link>
+      <Link to="/" className="navbar-logo">🤝 Dona<span>Red</span></Link>
       <div className="navbar-links">
         {!usuario ? (
           <>
-            <Link to="/servicios" className={isActive('/servicios')}>Servicios</Link>
-            <Link to="/rastrear" className={isActive('/rastrear')}>Rastrear Pedido</Link>
-            <Link to="/login" className={isActive('/login')} style={{ display: 'none' }}>Iniciar Sesión</Link>
+            <Link to="/productos" className={isActive('/productos')}>Insumos</Link>
+            <Link to="/solicitar" className={isActive('/solicitar')}>Quiero Donar</Link>
+            <Link to="/login" className="btn btn-primary btn-sm">Iniciar Sesión</Link>
           </>
         ) : usuario.rol === 'admin' ? (
           <>
             <Link to="/admin" className={isActive('/admin')}>Panel</Link>
-            <Link to="/admin/pedidos" className={isActive('/admin/pedidos')}>Pedidos</Link>
-            <Link to="/admin/agendar" className="btn btn-primary btn-sm">+ Nuevo Pedido</Link>
-            <Link to="/admin/servicios" className={isActive('/admin/servicios')}>Servicios</Link>
-            <Link to="/admin/trabajadores" className={isActive('/admin/trabajadores')}>Nuevo Trabajador</Link>
-
+            <Link to="/admin/donaciones" className={isActive('/admin/donaciones')}>Donaciones</Link>
+            <Link to="/admin/solicitudes" className={isActive('/admin/solicitudes')}>Solicitudes</Link>
+            <Link to="/admin/registrar" className="btn btn-primary btn-sm">+ Nueva Donación</Link>
+            <Link to="/admin/productos" className={isActive('/admin/productos')}>Insumos</Link>
+            <Link to="/admin/voluntarios-registro" className={isActive('/admin/voluntarios-registro')}>Voluntarios</Link>
             <button onClick={handleLogout} className="btn btn-secondary btn-sm">Salir</button>
           </>
-        ) : usuario.rol === 'empleado' ? (
+        ) : usuario.rol === 'voluntario' ? (
           <>
-            <Link to="/admin/pedidos" className={isActive('/admin/pedidos')}>Ver Pedidos</Link>
-            <span style={{ color: 'var(--amarillo)', fontSize: '0.9rem' }}>👷 {usuario.nombre.split(' ')[0]}</span>
+            <Link to="/admin/donaciones" className={isActive('/admin/donaciones')}>Ver Donaciones</Link>
+            <span style={{ color: 'var(--amarillo)', fontSize: '0.9rem' }}>🤝 {usuario.nombre.split(' ')[0]}</span>
             <button onClick={handleLogout} className="btn btn-secondary btn-sm">Salir</button>
           </>
         ) : (
           <>
-            <Link to="/servicios" className={isActive('/servicios')}>Servicios</Link>
-            <Link to="/mis-pedidos" className={isActive('/mis-pedidos')}>Mis Pedidos</Link>
+            <Link to="/productos" className={isActive('/productos')}>Insumos</Link>
+            <Link to="/mis-donaciones" className={isActive('/mis-donaciones')}>Mis Donaciones</Link>
             <span style={{ color: 'var(--amarillo)', fontSize: '0.9rem' }}>Hola, {usuario.nombre.split(' ')[0]}</span>
             <button onClick={handleLogout} className="btn btn-secondary btn-sm">Salir</button>
           </>

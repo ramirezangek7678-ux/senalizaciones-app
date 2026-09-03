@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
-const AdminEmpleados = () => {
-  const [empleados, setEmpleados] = useState([]);
+const AdminVoluntarios = () => {
+  const [voluntarios, setVoluntarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ nombre: '', email: '', password: '', telefono: '' });
 
   const cargar = () => {
-    api.get('/api/admin/empleados')
-      .then(r => setEmpleados(Array.isArray(r.data) ? r.data : []))
-      .catch(() => toast.error('Error al cargar empleados'))
+    api.get('/api/admin/voluntarios')
+      .then(r => setVoluntarios(r.data))
+      .catch(() => toast.error('Error al cargar voluntarios'))
       .finally(() => setCargando(false));
   };
 
@@ -23,25 +23,25 @@ const AdminEmpleados = () => {
     if (form.password.length < 6)
       return toast.error('La contraseña debe tener al menos 6 caracteres');
     try {
-      await api.post('/api/admin/empleados', form);
-      toast.success('Empleado creado exitosamente');
+      await api.post('/api/admin/voluntarios', form);
+      toast.success('Voluntario creado exitosamente');
       setModal(false);
       setForm({ nombre: '', email: '', password: '', telefono: '' });
       cargar();
     } catch (err) {
-      toast.error(err.response?.data?.mensaje || 'Error al crear empleado');
+      toast.error(err.response?.data?.mensaje || 'Error al crear voluntario');
     }
   };
 
-  const toggleActivo = async (emp) => {
-    const accion = emp.activo ? 'desactivar' : 'activar';
-    if (!window.confirm(`¿Deseas ${accion} a ${emp.nombre}?`)) return;
+  const toggleActivo = async (vol) => {
+    const accion = vol.activo ? 'desactivar' : 'activar';
+    if (!window.confirm(`¿Deseas ${accion} a ${vol.nombre}?`)) return;
     try {
-      await api.put(`/api/admin/empleados/${emp._id}`, { activo: !emp.activo });
-      toast.success(`Empleado ${emp.activo ? 'desactivado' : 'activado'}`);
+      await api.put(`/api/admin/voluntarios/${vol._id}`, { activo: !vol.activo });
+      toast.success(`Voluntario ${vol.activo ? 'desactivado' : 'activado'}`);
       cargar();
     } catch {
-      toast.error('Error al actualizar empleado');
+      toast.error('Error al actualizar voluntario');
     }
   };
 
@@ -49,16 +49,15 @@ const AdminEmpleados = () => {
     <div className="container page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
         <div>
-          <h1 className="page-title">Empleados</h1>
-          <p className="page-subtitle">Usuarios con acceso para ver y completar pedidos</p>
+          <h1 className="page-title">Voluntarios</h1>
+          <p className="page-subtitle">Usuarios con acceso para ver y entregar donaciones</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Empleado</button>
+        <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Voluntario</button>
       </div>
 
-      {/* Info del rol */}
       <div className="card card-amarillo" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
         <p style={{ fontSize: '0.9rem', color: 'var(--blanco-apagado)' }}>
-          👷 Los empleados pueden <strong style={{ color: 'var(--amarillo)' }}>ver todos los pedidos</strong> y <strong style={{ color: 'var(--amarillo)' }}>marcarlos como completados</strong>, pero no pueden agendar, editar servicios ni administrar el sistema.
+          🤝 Los voluntarios pueden <strong style={{ color: 'var(--amarillo)' }}>ver todas las donaciones</strong> y <strong style={{ color: 'var(--amarillo)' }}>marcarlas como entregadas</strong>, pero no pueden registrar donaciones, editar insumos ni administrar el sistema.
         </p>
       </div>
 
@@ -76,34 +75,34 @@ const AdminEmpleados = () => {
               </tr>
             </thead>
             <tbody>
-              {empleados.map(e => (
-                <tr key={e._id}>
-                  <td style={{ fontWeight: 600 }}>{e.nombre}</td>
-                  <td style={{ color: 'var(--blanco-apagado)', fontSize: '0.9rem' }}>{e.email}</td>
-                  <td>{e.telefono}</td>
+              {voluntarios.map(v => (
+                <tr key={v._id}>
+                  <td style={{ fontWeight: 600 }}>{v.nombre}</td>
+                  <td style={{ color: 'var(--blanco-apagado)', fontSize: '0.9rem' }}>{v.email}</td>
+                  <td>{v.telefono}</td>
                   <td>
-                    <span className={`badge ${e.activo ? 'badge-confirmada' : 'badge-cancelada'}`}>
-                      {e.activo ? 'Activo' : 'Inactivo'}
+                    <span className={`badge ${v.activo ? 'badge-confirmada' : 'badge-cancelada'}`}>
+                      {v.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
                   <td style={{ fontSize: '0.85rem', color: 'var(--blanco-apagado)' }}>
-                    {new Date(e.createdAt).toLocaleDateString('es-MX')}
+                    {new Date(v.createdAt).toLocaleDateString('es-MX')}
                   </td>
                   <td>
                     <button
                       className="btn btn-sm"
-                      style={{ background: e.activo ? 'var(--rojo)' : 'var(--verde)', color: 'white' }}
-                      onClick={() => toggleActivo(e)}
+                      style={{ background: v.activo ? 'var(--rojo)' : 'var(--verde)', color: 'white' }}
+                      onClick={() => toggleActivo(v)}
                     >
-                      {e.activo ? '⛔ Desactivar' : '✅ Activar'}
+                      {v.activo ? '⛔ Desactivar' : '✅ Activar'}
                     </button>
                   </td>
                 </tr>
               ))}
-              {empleados.length === 0 && (
+              {voluntarios.length === 0 && (
                 <tr><td colSpan={6}>
                   <div className="empty-state" style={{ padding: '2rem' }}>
-                    <p>No hay empleados registrados aún</p>
+                    <p>No hay voluntarios registrados aún</p>
                   </div>
                 </td></tr>
               )}
@@ -112,12 +111,11 @@ const AdminEmpleados = () => {
         </div>
       )}
 
-      {/* Modal crear empleado */}
       {modal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '1rem' }}>
           <div className="card" style={{ width: '100%', maxWidth: '460px' }}>
             <h3 style={{ color: 'var(--amarillo)', marginBottom: '1.5rem', fontSize: '1.4rem' }}>
-              👷 Nuevo Empleado
+              🤝 Nuevo Voluntario
             </h3>
             <div className="form-group">
               <label className="form-label">Nombre Completo</label>
@@ -125,7 +123,7 @@ const AdminEmpleados = () => {
             </div>
             <div className="form-group">
               <label className="form-label">Correo Electrónico</label>
-              <input className="form-input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="empleado@empresa.com" />
+              <input className="form-input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="voluntario@correo.com" />
             </div>
             <div className="form-group">
               <label className="form-label">Teléfono</label>
@@ -137,7 +135,7 @@ const AdminEmpleados = () => {
             </div>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
               <button className="btn btn-secondary" onClick={() => setModal(false)}>Cancelar</button>
-              <button className="btn btn-primary" onClick={handleCrear}>Crear Empleado</button>
+              <button className="btn btn-primary" onClick={handleCrear}>Crear Voluntario</button>
             </div>
           </div>
         </div>
@@ -146,4 +144,4 @@ const AdminEmpleados = () => {
   );
 };
 
-export default AdminEmpleados;
+export default AdminVoluntarios;

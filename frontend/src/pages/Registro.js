@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const Registro = () => {
-  const [form, setForm] = useState({ nombre: '', email: '', password: '', telefono: '', empresa: '' });
+  const [form, setForm] = useState({ nombre: '', email: '', password: '', telefono: '', organizacion: '' });
   const [cargando, setCargando] = useState(false);
   const { registro } = useAuth();
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const Registro = () => {
     try {
       await registro(form);
       toast.success('¡Cuenta creada exitosamente!');
-      navigate('/mis-pedidos');
+      navigate('/mis-donaciones');
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al registrarse');
     } finally {
@@ -30,9 +30,9 @@ const Registro = () => {
     <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       <div className="card" style={{ width: '100%', maxWidth: '480px' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📋</div>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📦</div>
           <h2 style={{ fontSize: '2rem', color: 'var(--amarillo)' }}>CREAR CUENTA</h2>
-          <p style={{ color: 'var(--blanco-apagado)', fontSize: '0.9rem' }}>Regístrate para realizar tus pedidos</p>
+          <p style={{ color: 'var(--blanco-apagado)', fontSize: '0.9rem' }}>Regístrate como donante y aporta tu granito de arena</p>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -51,8 +51,8 @@ const Registro = () => {
             <input className="form-input" type="email" name="email" value={form.email} onChange={handleChange} placeholder="tu@email.com" required />
           </div>
           <div className="form-group">
-            <label className="form-label">Empresa (opcional)</label>
-            <input className="form-input" name="empresa" value={form.empresa} onChange={handleChange} placeholder="Nombre de tu empresa" />
+            <label className="form-label">Organización (opcional)</label>
+            <input className="form-input" name="organizacion" value={form.organizacion} onChange={handleChange} placeholder="Empresa, fundación o grupo al que perteneces" />
           </div>
           <div className="form-group">
             <label className="form-label">Contraseña</label>

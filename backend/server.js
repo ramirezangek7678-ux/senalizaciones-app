@@ -9,10 +9,11 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/pedidos', require('./routes/pedidos'));
-app.use('/api/servicios', require('./routes/servicios'));
+app.use('/api/solicitudes', require('./routes/solicitudes'));
+app.use('/api/donaciones', require('./routes/donaciones'));
+app.use('/api/productos', require('./routes/productos'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/trabajadores', require('./routes/trabajadores'));
+app.use('/api/voluntarios', require('./routes/voluntarios'));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB conectado'))
